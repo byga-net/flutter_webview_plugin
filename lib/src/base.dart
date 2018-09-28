@@ -22,6 +22,7 @@ class FlutterWebviewPlugin {
   final _onScrollXChanged = new StreamController<double>.broadcast();
   final _onScrollYChanged = new StreamController<double>.broadcast();
   final _onHttpError = new StreamController<WebViewHttpError>.broadcast();
+  final _onInterceptedUrl = new StreamController<String>.broadcast();
 
   static FlutterWebviewPlugin _instance;
 
@@ -38,6 +39,9 @@ class FlutterWebviewPlugin {
         break;
       case 'onUrlChanged':
         _onUrlChanged.add(call.arguments['url']);
+        break;
+      case 'onInterceptedUrl':
+        _onInterceptedUrl.add(call.arguments['url']);
         break;
       case "onScrollXChanged":
         _onScrollXChanged.add(call.arguments["xDirection"]);
@@ -63,6 +67,8 @@ class FlutterWebviewPlugin {
 
   /// Listening url changed
   Stream<String> get onUrlChanged => _onUrlChanged.stream;
+
+  Stream<String> get onInterceptedUrl => _onInterceptedUrl.stream;
 
   /// Listening the onState Event for iOS WebView and Android
   /// content is Map for type: {shouldStart(iOS)|startLoad|finishLoad}
@@ -188,6 +194,7 @@ class FlutterWebviewPlugin {
   void dispose() {
     _onDestroy.close();
     _onUrlChanged.close();
+    _onInterceptedUrl.close();
     _onStateChanged.close();
     _onScrollXChanged.close();
     _onScrollYChanged.close();

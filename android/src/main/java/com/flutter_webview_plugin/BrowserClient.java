@@ -48,4 +48,15 @@ public class BrowserClient extends WebViewClient {
         data.put("code", Integer.toString(errorResponse.getStatusCode()));
         FlutterWebviewPlugin.channel.invokeMethod("onHttpError", data);
     }
+
+    @Override
+    public boolean shouldOverrideUrlLoading(WebView view, String url){
+        if (!url.startsWith("http")) {
+            Map<String, Object> data = new HashMap<>();
+            data.put("url", url);
+            FlutterWebviewPlugin.channel.invokeMethod("onInterceptedUrl", data);
+            return true;
+        }
+        return false;
+    }
 }
