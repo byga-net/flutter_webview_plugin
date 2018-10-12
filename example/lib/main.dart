@@ -56,6 +56,7 @@ class _MyHomePageState extends State<MyHomePage> {
   StreamSubscription<String> _onUrlChanged;
 
   StreamSubscription<WebViewHttpError> _onInterceptedUrl;
+  StreamSubscription<WebViewHttpError> _onBackPressed;
 
   // On urlChanged stream
   StreamSubscription<WebViewStateChanged> _onStateChanged;
@@ -147,6 +148,15 @@ class _MyHomePageState extends State<MyHomePage> {
         });
       }
     });
+
+    _onBackPressed =
+        flutterWebviewPlugin.onBackPressed.listen((_) {
+      if (mounted) {
+        setState(() {
+          _history.add('onBackPressed');
+        });
+      }
+    });
   }
 
   @override
@@ -157,6 +167,7 @@ class _MyHomePageState extends State<MyHomePage> {
     _onStateChanged.cancel();
     _onHttpError.cancel();
     _onInterceptedUrl.cancel();
+    _onBackPressed.cancel();
     _onScrollXChanged.cancel();
     _onScrollYChanged.cancel();
 

@@ -90,6 +90,7 @@ class WebviewManager {
 //                            } else {
 //                                close();
 //                            }
+                            FlutterWebviewPlugin.channel.invokeMethod("onBackPressed", null);
                             return true;
                     }
                 }
