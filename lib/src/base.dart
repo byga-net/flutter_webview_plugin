@@ -11,27 +11,26 @@ enum WebViewState { shouldStart, startLoad, finishLoad }
 
 // TODO: use an id by webview to be able to manage multiple webview
 
-/// Singleton Class that communicate with a Webview Instance
-/// Have to be instanciate after `runApp` called.
+/// Singleton class that communicate with a Webview Instance
 class FlutterWebviewPlugin {
-  final _channel = const MethodChannel(_kChannel);
-
-  final _onDestroy = new StreamController<Null>.broadcast();
-  final _onUrlChanged = new StreamController<String>.broadcast();
-  final _onStateChanged = new StreamController<WebViewStateChanged>.broadcast();
-  final _onScrollXChanged = new StreamController<double>.broadcast();
-  final _onScrollYChanged = new StreamController<double>.broadcast();
-  final _onHttpError = new StreamController<WebViewHttpError>.broadcast();
-  final _onInterceptedUrl = new StreamController<String>.broadcast();
-  final _onBackPressed = new StreamController<Null>.broadcast();
-
-  static FlutterWebviewPlugin _instance;
-
-  factory FlutterWebviewPlugin() => _instance ??= new FlutterWebviewPlugin._();
+  factory FlutterWebviewPlugin() => _instance ??= FlutterWebviewPlugin._();
 
   FlutterWebviewPlugin._() {
     _channel.setMethodCallHandler(_handleMessages);
   }
+
+  static FlutterWebviewPlugin _instance;
+
+  final _channel = const MethodChannel(_kChannel);
+
+  final _onDestroy = StreamController<Null>.broadcast();
+  final _onUrlChanged = StreamController<String>.broadcast();
+  final _onStateChanged = StreamController<WebViewStateChanged>.broadcast();
+  final _onScrollXChanged = StreamController<double>.broadcast();
+  final _onScrollYChanged = StreamController<double>.broadcast();
+  final _onHttpError = StreamController<WebViewHttpError>.broadcast();
+  final _onInterceptedUrl = new StreamController<String>.broadcast();
+  final _onBackPressed = new StreamController<Null>.broadcast();
 
   Future<Null> _handleMessages(MethodCall call) async {
     switch (call.method) {
@@ -47,21 +46,21 @@ class FlutterWebviewPlugin {
       case 'onBackPressed':
         _onBackPressed.add(null);
         break;
-      case "onScrollXChanged":
-        _onScrollXChanged.add(call.arguments["xDirection"]);
+      case 'onScrollXChanged':
+        _onScrollXChanged.add(call.arguments['xDirection']);
         break;
-      case "onScrollYChanged":
-        _onScrollYChanged.add(call.arguments["yDirection"]);
+      case 'onScrollYChanged':
+        _onScrollYChanged.add(call.arguments['yDirection']);
         break;
-      case "onState":
+      case 'onState':
         _onStateChanged.add(
-          new WebViewStateChanged.fromMap(
-              new Map<String, dynamic>.from(call.arguments)),
+          WebViewStateChanged.fromMap(
+            Map<String, dynamic>.from(call.arguments),
+          ),
         );
         break;
       case 'onHttpError':
-        _onHttpError.add(
-            WebViewHttpError(call.arguments['code'], call.arguments['url']));
+        _onHttpError.add(WebViewHttpError(call.arguments['code'], call.arguments['url']));
         break;
     }
   }
@@ -106,19 +105,23 @@ class FlutterWebviewPlugin {
   /// - [withLocalUrl]: allow url as a local path
   ///     Allow local files on iOs > 9.0
   /// - [scrollBar]: enable or disable scrollbar
-  Future<Null> launch(String url,
-      {Map<String, String> headers,
-      bool withJavascript,
-      bool clearCache,
-      bool clearCookies,
-      bool hidden,
-      bool enableAppScheme,
-      Rect rect,
-      String userAgent,
-      bool withZoom,
-      bool withLocalStorage,
-      bool withLocalUrl,
-      bool scrollBar}) async {
+  Future<Null> launch(String url, {
+    Map<String, String> headers,
+    bool withJavascript,
+    bool clearCache,
+    bool clearCookies,
+    bool hidden,
+    bool enableAppScheme,
+    Rect rect,
+    String userAgent,
+    bool withZoom,
+    bool withLocalStorage,
+    bool withLocalUrl,
+    bool scrollBar,
+    bool supportMultipleWindows,
+    bool appCacheEnabled,
+    bool allowFileURLs,
+  }) async {
     final args = <String, dynamic>{
       'url': url,
       'withJavascript': withJavascript ?? true,
@@ -130,7 +133,10 @@ class FlutterWebviewPlugin {
       'withZoom': withZoom ?? false,
       'withLocalStorage': withLocalStorage ?? true,
       'withLocalUrl': withLocalUrl ?? false,
-      'scrollBar': scrollBar ?? true
+      'scrollBar': scrollBar ?? true,
+      'supportMultipleWindows': supportMultipleWindows ?? false,
+      'appCacheEnabled': appCacheEnabled ?? false,
+      'allowFileURLs': allowFileURLs ?? false,
     };
 
     if (headers != null) {
@@ -142,7 +148,7 @@ class FlutterWebviewPlugin {
         'left': rect.left,
         'top': rect.top,
         'width': rect.width,
-        'height': rect.height
+        'height': rect.height,
       };
     }
     await _channel.invokeMethod('launch', args);
@@ -156,44 +162,34 @@ class FlutterWebviewPlugin {
 
   /// Close the Webview
   /// Will trigger the [onDestroy] event
-  Future close() => _channel.invokeMethod('close');
+  Future<Null> close() async => await _channel.invokeMethod('close');
 
   /// Reloads the WebView.
-  /// This is only available on Android for now.
-  Future reload() => _channel.invokeMethod('reload');
+  Future<Null> reload() async => await _channel.invokeMethod('reload');
 
   /// Navigates back on the Webview.
-  /// This is only available on Android for now.
-  Future goBack() => _channel.invokeMethod('back');
+  Future<Null> goBack() async => await _channel.invokeMethod('back');
 
   /// Navigates forward on the Webview.
-  /// This is only available on Android for now.
-  Future goForward() => _channel.invokeMethod('forward');
+  Future<Null> goForward() async => await _channel.invokeMethod('forward');
 
   // Hides the webview
-  Future hide() => _channel.invokeMethod('hide');
+  Future<Null> hide() async => await _channel.invokeMethod('hide');
 
   // Shows the webview
-  Future show() => _channel.invokeMethod('show');
+  Future<Null> show() async => await _channel.invokeMethod('show');
 
-  // Reload webview with a new url
-  Future reloadUrl(String url) async {
+  // Reload webview with a url
+  Future<Null> reloadUrl(String url) async {
     final args = <String, String>{'url': url};
     await _channel.invokeMethod('reloadUrl', args);
   }
 
+  // Clean cookies on WebView
+  Future<Null> cleanCookies() async => await _channel.invokeMethod('cleanCookies');
+
   // Stops current loading process
-  Future stopLoading() => _channel.invokeMethod("stopLoading");
-
-  /// adds the plugin as ActivityResultListener
-  /// Only needed and used on Android
-  Future registerAcitivityResultListener() =>
-      _channel.invokeMethod('registerAcitivityResultListener');
-
-  /// removes the plugin as ActivityResultListener
-  /// Only needed and used on Android
-  Future removeAcitivityResultListener() =>
-      _channel.invokeMethod('removeAcitivityResultListener');
+  Future<Null> stopLoading() async => await _channel.invokeMethod('stopLoading');
 
   /// Close all Streams
   void dispose() {
@@ -214,8 +210,8 @@ class FlutterWebviewPlugin {
 
     if (cookiesString?.isNotEmpty == true) {
       cookiesString.split(';').forEach((String cookie) {
-        final splited = cookie.split('=');
-        cookies[splited[0]] = splited[1];
+        final split = cookie.split('=');
+        cookies[split[0]] = split[1];
       });
     }
 
@@ -229,17 +225,13 @@ class FlutterWebviewPlugin {
       'left': rect.left,
       'top': rect.top,
       'width': rect.width,
-      'height': rect.height
+      'height': rect.height,
     };
     await _channel.invokeMethod('resize', args);
   }
 }
 
 class WebViewStateChanged {
-  final WebViewState type;
-  final String url;
-  final int navigationType;
-
   WebViewStateChanged(this.type, this.url, this.navigationType);
 
   factory WebViewStateChanged.fromMap(Map<String, dynamic> map) {
@@ -255,13 +247,17 @@ class WebViewStateChanged {
         t = WebViewState.finishLoad;
         break;
     }
-    return new WebViewStateChanged(t, map['url'], map['navigationType']);
+    return WebViewStateChanged(t, map['url'], map['navigationType']);
   }
+
+  final WebViewState type;
+  final String url;
+  final int navigationType;
 }
 
 class WebViewHttpError {
+  WebViewHttpError(this.code, this.url);
+
   final String url;
   final String code;
-
-  WebViewHttpError(this.code, this.url);
 }
