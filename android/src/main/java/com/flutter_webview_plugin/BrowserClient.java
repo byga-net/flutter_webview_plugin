@@ -61,43 +61,33 @@ public class BrowserClient extends WebViewClient {
 
     }
 
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    @Override
-    public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-        // returning true causes the current WebView to abort loading the URL,
-        // while returning false causes the WebView to continue loading the URL as usual.
-        String url = request.getUrl().toString();
-        boolean isInvalid = checkInvalidUrl(url);
-        Map<String, Object> data = new HashMap<>();
-        data.put("url", url);
-        data.put("type", isInvalid ? "abortLoad" : "shouldStart");
-
-        FlutterWebviewPlugin.channel.invokeMethod("onState", data);
-        return isInvalid;
-    }
-
-    @Override
-    public boolean shouldOverrideUrlLoading(WebView view, String url) {
-        // returning true causes the current WebView to abort loading the URL,
-        // while returning false causes the WebView to continue loading the URL as usual.
-        boolean isInvalid = checkInvalidUrl(url);
-        Map<String, Object> data = new HashMap<>();
-        data.put("url", url);
-        data.put("type", isInvalid ? "abortLoad" : "shouldStart");
-
-        FlutterWebviewPlugin.channel.invokeMethod("onState", data);
-        return isInvalid;
-    }
-
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    @Override
-    public void onReceivedHttpError(WebView view, WebResourceRequest request, WebResourceResponse errorResponse) {
-        super.onReceivedHttpError(view, request, errorResponse);
-        Map<String, Object> data = new HashMap<>();
-        data.put("url", request.getUrl().toString());
-        data.put("code", Integer.toString(errorResponse.getStatusCode()));
-        FlutterWebviewPlugin.channel.invokeMethod("onHttpError", data);
-    }
+//    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+//    @Override
+//    public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+//        // returning true causes the current WebView to abort loading the URL,
+//        // while returning false causes the WebView to continue loading the URL as usual.
+//        String url = request.getUrl().toString();
+//        boolean isInvalid = checkInvalidUrl(url);
+//        Map<String, Object> data = new HashMap<>();
+//        data.put("url", url);
+//        data.put("type", isInvalid ? "abortLoad" : "shouldStart");
+//
+//        FlutterWebviewPlugin.channel.invokeMethod("onState", data);
+//        return isInvalid;
+//    }
+//
+//    @Override
+//    public boolean shouldOverrideUrlLoading(WebView view, String url) {
+//        // returning true causes the current WebView to abort loading the URL,
+//        // while returning false causes the WebView to continue loading the URL as usual.
+//        boolean isInvalid = checkInvalidUrl(url);
+//        Map<String, Object> data = new HashMap<>();
+//        data.put("url", url);
+//        data.put("type", isInvalid ? "abortLoad" : "shouldStart");
+//
+//        FlutterWebviewPlugin.channel.invokeMethod("onState", data);
+//        return isInvalid;
+//    }
 
     @Override
     public boolean shouldOverrideUrlLoading(WebView view, String url){
@@ -108,6 +98,16 @@ public class BrowserClient extends WebViewClient {
             return true;
         }
         return false;
+    }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    @Override
+    public void onReceivedHttpError(WebView view, WebResourceRequest request, WebResourceResponse errorResponse) {
+        super.onReceivedHttpError(view, request, errorResponse);
+        Map<String, Object> data = new HashMap<>();
+        data.put("url", request.getUrl().toString());
+        data.put("code", Integer.toString(errorResponse.getStatusCode()));
+        FlutterWebviewPlugin.channel.invokeMethod("onHttpError", data);
     }
 
     @Override
