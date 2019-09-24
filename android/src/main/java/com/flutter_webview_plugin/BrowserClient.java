@@ -115,7 +115,7 @@ public class BrowserClient extends WebViewClient {
         super.onReceivedError(view, errorCode, description, failingUrl);
         Map<String, Object> data = new HashMap<>();
         data.put("url", failingUrl);
-        data.put("code", errorCode);
+        data.put("code", Integer.toString(errorCode));
         FlutterWebviewPlugin.channel.invokeMethod("onHttpError", data);
     }
 
